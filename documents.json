@@ -1,11 +1,56 @@
 [
   {
-    "name": "example",
-    "title": "TODO(author): the first document this industry must produce",
-    "for_each": "select gen_random_uuid() as id, 'Example' as name",
-    "file": "name",
+    "name": "cutover-plan",
+    "title": "Cutover plan",
+    "for_each": "select id,code from runbooks order by code",
+    "file": "code",
     "sections": [
-      { "title": "Details", "sql": "select 'replace me' as item, $1::text as record_id" }
+      {
+        "title": "Change window",
+        "layout": "record",
+        "sql": "select code,name,owner,revision,window_start,window_end,rollback_by from runbooks where id=$1"
+      },
+      {
+        "title": "Tasks and rollback instructions",
+        "sql": "select code,title,owner,stream,duration_minutes,critical,rollback from tasks where runbook_id=$1 order by code"
+      },
+      {
+        "title": "Predecessors",
+        "sql": "select t.code as task,p.code as predecessor from dependencies d join tasks t on t.id=d.task_id join tasks p on p.id=d.predecessor_id where d.runbook_id=$1 order by t.code"
+      }
+    ]
+  },
+  {
+    "name": "decision-record",
+    "title": "Go or no-go decision record",
+    "for_each": "select id,code from runbooks order by code",
+    "file": "code",
+    "sections": [
+      {
+        "title": "Human decisions",
+        "sql": "select revision,choice,actor,evidence,created_at from decisions where runbook_id=$1 order by seq desc"
+      },
+      {
+        "title": "Rehearsals and live runs",
+        "sql": "select code,revision,mode,status,actor,started_at,ended_at from runs where runbook_id=$1 order by seq desc"
+      }
+    ]
+  },
+  {
+    "name": "run-evidence",
+    "title": "Run evidence and handover",
+    "for_each": "select id,code from runs order by code",
+    "file": "code",
+    "sections": [
+      {
+        "title": "Run snapshot",
+        "layout": "record",
+        "sql": "select code,revision,mode,status,actor,started_at,ended_at from runs where id=$1"
+      },
+      {
+        "title": "Task results",
+        "sql": "select code,title,owner,status,evidence,actor,completed_at from run_tasks where run_id=$1 order by code"
+      }
     ]
   }
 ]

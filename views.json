@@ -1,13 +1,35 @@
 [
   {
     "name": "week",
-    "title": "This week",
-    "subtitle": "Cutover Runbooks for Claude Code: what needs attention, rendered by npm run view",
+    "title": "Migration week",
     "sections": [
       {
-        "title": "Needs attention",
-        "note": "TODO(author): point this at the industry's attention view (overdue, stuck, quiet).",
-        "sql": "select 'replace me' as item, 'TODO(author)' as why"
+        "title": "Plan readiness",
+        "sql": "select code,name,revision,tasks,unowned,missing_rollback,rehearsal,decision from v_readiness order by code"
+      },
+      {
+        "title": "Attention",
+        "sql": "select * from v_task_attention order by runbook,code"
+      }
+    ]
+  },
+  {
+    "name": "workload",
+    "title": "Owner workload",
+    "sections": [
+      {
+        "title": "Planned work",
+        "sql": "select * from v_owner_load order by planned_minutes desc"
+      }
+    ]
+  },
+  {
+    "name": "rehearsals",
+    "title": "Rehearsal evidence",
+    "sections": [
+      {
+        "title": "Results by plan revision",
+        "sql": "select * from v_rehearsals order by started_at desc"
       }
     ]
   }
